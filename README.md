@@ -53,21 +53,6 @@ python yt_download.py -u "https://youtube.com/playlist?list=..." --playlist
 
 ---
 
-## Push to GitHub
-
-```bash
-# One-time setup
-git init
-git remote add origin https://github.com/YOUR_USERNAME/yt-download.git
-
-# First push
-git add .
-git commit -m "init"
-git push -u origin main
-```
-
----
-
 ## Project Structure
 
 ```
