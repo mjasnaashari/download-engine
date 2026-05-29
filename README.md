@@ -12,7 +12,7 @@ git clone https://github.com/mjasnaashari/download-engine
 cd download-engine
 python -m venv env
 source env/bin/activate
-python -m pip install yt-dlp requests
+python -m pip install yt-dlp yt-dlp-ejs requests
 ```
 
 > Run `source env/bin/activate` every new terminal session.
@@ -29,6 +29,8 @@ python yt_download.py -u "URL" -q 1080p
 python yt_download.py -u "URL" -q audio
 python yt_download.py -u "URL" -q 720p -o ~/Videos
 python yt_download.py -u "URL" --list-formats
+python yt_download.py -u "URL" --browser brave        # pass auth to bypass bot blocks
+python yt_download.py -u "URL" --cookies cookies.txt  # use exported cookies file
 ```
 
 ---
@@ -42,6 +44,8 @@ python yt_playlist.py -u "URL" -q audio -o ~/Music    # audio only → MP3
 python yt_playlist.py -u "URL" --list                 # list videos, no download
 python yt_playlist.py -u "URL" --start 50             # download from item 50 to end
 python yt_playlist.py -u "URL" --start 50 --end 60    # download items 50 to 60
+python yt_playlist.py -u "URL" --browser brave        # pass auth to bypass bot blocks
+python yt_playlist.py -u "URL" --cookies cookies.txt  # use exported cookies file
 ```
 
 Files saved as: `01 - Video Title.mp4`, `02 - Video Title.mp4` …
@@ -56,7 +60,7 @@ python yt_list.py -u "URL" -o list.txt  # save to file
 ```
 
 Output:
-```
+```text
 1.
 title: Video Title
 url:   https://www.youtube.com/watch?v=...
@@ -87,7 +91,7 @@ url:   https://www.youtube.com/watch?v=...
 
 ## Project Structure
 
-```
+```text
 yt-download/
 ├── env/              ← virtual environment (not committed)
 ├── downloads/        ← default output folder (not committed)
@@ -97,4 +101,3 @@ yt-download/
 ├── .gitignore
 └── README.md
 ```
-
