@@ -39,21 +39,22 @@ brew install ffmpeg deno
 
 ### PO Token Server (for 1080p+ and age-restricted videos)
 
-`setup.sh` starts this automatically. Use `--no-server` to skip:
+`setup.sh` starts this automatically. Manage it with these options:
 
 ```bash
-./setup.sh --no-server   # setup only, no server
+./setup.sh                  # full setup + start server
+./setup.sh --no-server      # setup only, don't start server
+./setup.sh --start-server   # start the server only
+./setup.sh --stop-server    # stop the server
+./setup.sh --status         # check if server is running
 ```
 
-**Security:** The server listens on `127.0.0.1:4416` only (localhost). It is not exposed to the network.
+**Security:** The server listens on `127.0.0.1:$PORT` only (localhost). It is not exposed to the network.
 
 ```bash
-# Start manually:
+# Start manually (if you did manual setup):
 (cd ~/bgutil-ytdlp-pot-provider/server && deno run --allow-env --allow-net --allow-ffi=. \
   --allow-read=. src/main.ts --port 4416)
-
-# Stop it:
-fuser -k 4416/tcp
 ```
 
 > **Note:** yt-dlp auto-detects the server at `http://127.0.0.1:4416`.  
