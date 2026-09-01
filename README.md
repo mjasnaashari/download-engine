@@ -4,18 +4,60 @@ CLI toolkit to download YouTube videos, audio, and playlists using [yt-dlp](http
 
 ---
 
-## Setup
+## Quick Setup
 
 ```bash
-sudo pacman -S python ffmpeg git
-git clone https://github.com/mjasnaashari/download-engine
-cd download-engine
-python -m venv env
+chmod +x setup.sh
+./setup.sh                    # one-command: installs deps + starts PO token server
 source env/bin/activate
-python -m pip install yt-dlp yt-dlp-ejs requests
+
+# Download high-quality YouTube videos (1080p, 1440p, etc.)
+python yt_download.py -u "URL" -q 1440p --browser brave
 ```
 
-> Run `source env/bin/activate` every new terminal session.
+`setup.sh` handles everything: Python venv, pip packages, the PO token plugin, Deno, and ffmpeg checks. It also starts a localhost-only PO token server for 1080p+ downloads.
+
+### Manual Setup (without setup.sh)
+
+```bash
+python3 -m venv env
+source env/bin/activate
+pip install -r requirements.txt
+pip install bgutil-ytdlp-pot-provider
+```
+
+**System dependencies:** `ffmpeg` and `deno`
+
+```bash
+# Ubuntu/Debian
+sudo apt install ffmpeg
+curl -fsSL https://deno.land/install.sh | sh
+
+# macOS
+brew install ffmpeg deno
+```
+
+### PO Token Server (for 1080p+ and age-restricted videos)
+
+`setup.sh` starts this automatically. Use `--no-server` to skip:
+
+```bash
+./setup.sh --no-server   # setup only, no server
+```
+
+**Security:** The server listens on `127.0.0.1:4416` only (localhost). It is not exposed to the network.
+
+```bash
+# Start manually:
+(cd ~/bgutil-ytdlp-pot-provider/server && deno run --allow-env --allow-net --allow-ffi=. \
+  --allow-read=. src/main.ts --port 4416)
+
+# Stop it:
+fuser -k 4416/tcp
+```
+
+> **Note:** yt-dlp auto-detects the server at `http://127.0.0.1:4416`.  
+> If the server is not running, yt-dlp falls back to the slower Deno script mode (still works, just slower per-request).
 
 ---
 
@@ -64,28 +106,32 @@ Output:
 1.
 title: Video Title
 url:   https://www.youtube.com/watch?v=...
-
-2.
-title: Video Title
-url:   https://www.youtube.com/watch?v=...
 ```
 
 ---
 
 ## Quality Options
 
-| Option | Description |
-|--------|-------------|
-| `best` | Highest available (default) |
-| `2160p` | 4K |
-| `1440p` | 2K |
-| `1080p` | Full HD |
-| `720p` | HD |
-| `480p` | SD |
-| `360p` | Low |
-| `240p` | Very low |
-| `worst` | Lowest available |
-| `audio` | Audio only → MP3 |
+| Option  | Description                         |
+|---------|-------------------------------------|
+| `best`  | Highest available (default)         |
+| `2160p` | 4K                                  |
+| `1440p` | 2K                                  |
+| `1080p` | Full HD                             |
+| `720p`  | HD                                  |
+| `480p`  | SD                                  |
+| `360p`  | Low                                 |
+| `240p`  | Very low                            |
+| `worst` | Lowest available                    |
+| `audio` | Audio only → MP3                    |
+
+---
+
+## Notes
+
+- **Age-restricted videos**: Always pass `--browser brave` (or your browser) to authenticate with YouTube cookies. Without auth, only 360p is available.
+- **PO Token**: The `bgutil-ytdlp-pot-provider` plugin + server generates GVS PO Tokens needed for 1080p+ formats. `setup.sh` handles this automatically.
+- **`--browser` support**: `firefox`, `chrome`, `brave`, `chromium`, `edge`
 
 ---
 
@@ -98,6 +144,8 @@ yt-download/
 ├── yt_download.py    ← single video
 ├── yt_playlist.py    ← full playlist
 ├── yt_list.py        ← list playlist titles & URLs
+├── requirements.txt  ← Python dependencies
+├── setup.sh          ← automated setup script
 ├── .gitignore
 └── README.md
 ```

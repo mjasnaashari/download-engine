@@ -1,0 +1,9 @@
+# Core downloader
+yt-dlp>=2025.05.22
+
+# PO Token provider plugin (generates YouTube PO tokens for 1080p+ downloads)
+# Required for age-restricted videos and high-quality DASH formats
+bgutil-ytdlp-pot-provider>=1.3.0
+
+# curl_cffi (needed for --impersonate option in yt-dlp)
+curl_cffi>=0.10

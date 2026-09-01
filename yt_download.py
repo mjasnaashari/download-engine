@@ -77,9 +77,8 @@ def make_progress_hook():
 
 def list_formats(url: str, browser: str = "", cookies: str = "") -> None:
     ydl_opts = {
-        "quiet": True, 
+        "quiet": True,
         "no_warnings": True,
-        "remote_components": ["ejs:github"]  # Added solver fix here
     }
     if browser:
         ydl_opts["cookiesfrombrowser"] = (browser,)
@@ -141,7 +140,6 @@ def download(
         "no_warnings":         False,
         "noplaylist":          no_playlist,
         "merge_output_format": "mp4",
-        "remote_components":   ["ejs:github"],  # Added solver fix here
     }
 
     if browser:

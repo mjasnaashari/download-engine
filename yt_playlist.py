@@ -127,7 +127,6 @@ def download_playlist(
         "ignoreerrors":        True,
         "noplaylist":          False,
         "playlist_items":      playlist_items,
-        "remote_components":   ["ejs:github"],
     }
 
     # ── auth: browser cookies (fixes "sign in to confirm" error)
