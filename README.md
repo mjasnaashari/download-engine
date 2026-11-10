@@ -74,6 +74,7 @@ python yt_download.py -u "URL" -q 720p -o ~/Videos
 python yt_download.py -u "URL" --list-formats
 python yt_download.py -u "URL" --browser brave        # pass auth to bypass bot blocks
 python yt_download.py -u "URL" --cookies cookies.txt  # use exported cookies file
+python yt_download.py -u "URL" -N 8               # 8 fragments at once (yt-dlp -N)
 ```
 
 ---
@@ -89,6 +90,7 @@ python yt_playlist.py -u "URL" --start 50             # download from item 50 to
 python yt_playlist.py -u "URL" --start 50 --end 60    # download items 50 to 60
 python yt_playlist.py -u "URL" --browser brave        # pass auth to bypass bot blocks
 python yt_playlist.py -u "URL" --cookies cookies.txt  # use exported cookies file
+python yt_playlist.py -u "URL" -N 8               # 8 fragments at once (yt-dlp -N)
 ```
 
 Files saved as: `01 - Video Title.mp4`, `02 - Video Title.mp4` …
@@ -133,6 +135,7 @@ url:   https://www.youtube.com/watch?v=...
 - **Age-restricted videos**: Always pass `--browser brave` (or your browser) to authenticate with YouTube cookies. Without auth, only 360p is available.
 - **PO Token**: The `bgutil-ytdlp-pot-provider` plugin + server generates GVS PO Tokens needed for 1080p+ formats. `setup.sh` handles this automatically.
 - **`--browser` support**: `firefox`, `chrome`, `brave`, `chromium`, `edge`
+- **`-N`**: concurrent DASH/HLS fragments (yt-dlp `concurrent_fragment_downloads`). Default is `1`. Higher values only speed up fragmented formats; a single progressive file stays one connection.
 
 ---
 

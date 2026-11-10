@@ -10,6 +10,7 @@ Usage:
   python yt_playlist.py -u "URL" --start 50 --end 60
   python yt_playlist.py -u "URL" --browser firefox
   python yt_playlist.py -u "URL" --cookies cookies.txt
+  python yt_playlist.py -u "URL" -N 8
 """
 
 import argparse
@@ -105,7 +106,12 @@ def download_playlist(
     end: int = 0,
     browser: str = "",
     cookies: str = "",
+    concurrent_fragments: int = 1,
 ) -> None:
+    if concurrent_fragments < 1:
+        print("Concurrent fragments (-N) must be at least 1.")
+        sys.exit(1)
+
     quality = quality.lower()
     is_audio = quality == "audio"
 
@@ -127,6 +133,7 @@ def download_playlist(
         "ignoreerrors":        True,
         "noplaylist":          False,
         "playlist_items":      playlist_items,
+        "concurrent_fragment_downloads": concurrent_fragments,
     }
 
     # ── auth: browser cookies (fixes "sign in to confirm" error)
@@ -149,6 +156,7 @@ def download_playlist(
     print(f"  Quality  : {quality}  →  {fmt}")
     print(f"  Range    : {range_str}")
     print(f"  Auth     : {auth_str}")
+    print(f"  -N       : {concurrent_fragments}")
     print(f"  Output   : {os.path.abspath(output_dir)}\n")
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -180,6 +188,7 @@ Examples:
   python yt_playlist.py -u "URL" --browser firefox
   python yt_playlist.py -u "URL" --browser chrome -q 1080p
   python yt_playlist.py -u "URL" --cookies cookies.txt
+  python yt_playlist.py -u "URL" -N 8
 """,
     )
     parser.add_argument("-u", "--url",      required=True,         help="Playlist URL (always quote it!)")
@@ -190,6 +199,8 @@ Examples:
     parser.add_argument("--end",            type=int, default=0,   help="Stop at item number (default: until end)")
     parser.add_argument("--browser",        default="",            help="Use cookies from browser: firefox, chrome, brave, chromium")
     parser.add_argument("--cookies",        default="",            help="Path to cookies.txt file")
+    parser.add_argument("-N", "--concurrent-fragments", type=int, default=1, metavar="N",
+                        help="Concurrent DASH/HLS fragments, same as yt-dlp -N (default: 1)")
 
     args = parser.parse_args()
 
@@ -204,6 +215,7 @@ Examples:
             end=args.end,
             browser=args.browser,
             cookies=args.cookies,
+            concurrent_fragments=args.concurrent_fragments,
         )
 
 

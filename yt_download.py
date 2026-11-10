@@ -9,6 +9,7 @@ Usage:
   python yt_download.py -u "https://youtu.be/VIDEO_ID" --list-formats
   python yt_download.py -u "https://youtu.be/VIDEO_ID" --browser brave
   python yt_download.py -u "https://youtu.be/VIDEO_ID" --cookies cookies.txt
+  python yt_download.py -u "https://youtu.be/VIDEO_ID" -N 8
 """
 
 import argparse
@@ -117,7 +118,12 @@ def download(
     embed_thumbnail: bool = False,
     browser: str = "",
     cookies: str = "",
+    concurrent_fragments: int = 1,
 ) -> None:
+    if concurrent_fragments < 1:
+        print("Concurrent fragments (-N) must be at least 1.")
+        sys.exit(1)
+
     os.makedirs(output_dir, exist_ok=True)
 
     quality = quality.lower()
@@ -140,6 +146,7 @@ def download(
         "no_warnings":         False,
         "noplaylist":          no_playlist,
         "merge_output_format": "mp4",
+        "concurrent_fragment_downloads": concurrent_fragments,
     }
 
     if browser:
@@ -170,6 +177,7 @@ def download(
     print(f"\n  URL     : {url}")
     print(f"  Quality : {quality}  →  {fmt}")
     print(f"  Auth    : {auth_str}")
+    print(f"  -N      : {concurrent_fragments}")
     print(f"  Output  : {os.path.abspath(output_dir)}\n")
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -205,6 +213,7 @@ Examples:
   python yt_download.py -u "URL" --browser brave
   python yt_download.py -u "URL" --browser brave -q 1080p
   python yt_download.py -u "URL" --cookies cookies.txt
+  python yt_download.py -u "URL" -N 8
 """,
     )
     parser.add_argument("-u", "--url",          required=True,         help="Video URL")
@@ -217,6 +226,8 @@ Examples:
     parser.add_argument("--list-formats",       action="store_true",   help="List all available formats and exit")
     parser.add_argument("--browser",            default="",            help="Use cookies from browser: brave, firefox, chrome, chromium")
     parser.add_argument("--cookies",            default="",            help="Path to cookies.txt file")
+    parser.add_argument("-N", "--concurrent-fragments", type=int, default=1, metavar="N",
+                        help="Concurrent DASH/HLS fragments, same as yt-dlp -N (default: 1)")
 
     args = parser.parse_args()
 
@@ -234,6 +245,7 @@ Examples:
         embed_thumbnail=args.thumbnail,
         browser=args.browser,
         cookies=args.cookies,
+        concurrent_fragments=args.concurrent_fragments,
     )
 
 

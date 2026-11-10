@@ -15,6 +15,24 @@ PORT=4416
 START_SERVER=true
 ACTION=""
 
+# Deno is installed to ~/.deno/bin. Login bash sources ~/.deno/env via
+# .bashrc/.profile, but interactive zsh (and this script) often do not.
+export DENO_INSTALL="${DENO_INSTALL:-$HOME/.deno}"
+export PATH="$DENO_INSTALL/bin:$PATH"
+
+ensure_deno() {
+    if command -v deno >/dev/null 2>&1; then
+        return 0
+    fi
+    if [ -x "$DENO_INSTALL/bin/deno" ]; then
+        export PATH="$DENO_INSTALL/bin:$PATH"
+        return 0
+    fi
+    echo "⚠️  deno not found. Install it, or add this to ~/.zshrc:"
+    echo "   export PATH=\"\$HOME/.deno/bin:\$PATH\""
+    return 1
+}
+
 # Parse args
 for arg in "$@"; do
     case $arg in
@@ -33,11 +51,20 @@ if [ -n "$ACTION" ]; then
     case $ACTION in
         start)
             echo "→ Starting PO token server on 127.0.0.1:$PORT..."
+            if [ ! -f "$PO_TOKEN_DIR/server/src/main.ts" ]; then
+                echo "⚠️  PO token provider missing at $PO_TOKEN_DIR"
+                echo "  Run: ./setup.sh --no-server"
+                exit 1
+            fi
+            if ! ensure_deno; then
+                exit 1
+            fi
             if curl -sf "http://127.0.0.1:$PORT/ping" >/dev/null 2>&1; then
                 echo "→ PO token server is already running."
             else
+                LOG_FILE="${TMPDIR:-/tmp}/bgutil-pot-${PORT}.log"
                 (cd "$PO_TOKEN_DIR/server" && deno run --allow-env --allow-net --allow-ffi=. --allow-read=. \
-                    src/main.ts --port $PORT >/dev/null 2>&1) &
+                    src/main.ts --port $PORT >"$LOG_FILE" 2>&1) &
                 SERVER_PID=$!
                 for i in $(seq 1 10); do
                     if curl -sf "http://127.0.0.1:$PORT/ping" >/dev/null 2>&1; then
@@ -48,7 +75,14 @@ if [ -n "$ACTION" ]; then
                 done
                 if ! curl -sf "http://127.0.0.1:$PORT/ping" >/dev/null 2>&1; then
                     echo "⚠️  PO token server failed to start."
-                    echo "  Make sure bgutil-ytdlp-pot-provider is cloned to $PO_TOKEN_DIR"
+                    echo "  deno: $(command -v deno || echo missing)"
+                    echo "  provider: $PO_TOKEN_DIR"
+                    echo "  log: $LOG_FILE"
+                    if [ -f "$LOG_FILE" ]; then
+                        echo "  --- last log lines ---"
+                        tail -n 20 "$LOG_FILE" || true
+                    fi
+                    exit 1
                 fi
             fi
             ;;
@@ -68,6 +102,9 @@ if [ -n "$ACTION" ]; then
                 echo ""
             else
                 echo "→ PO token server is NOT running."
+                if ! command -v deno >/dev/null 2>&1; then
+                    echo "  Note: deno is not on PATH (expected at \$HOME/.deno/bin)."
+                fi
             fi
             ;;
     esac
@@ -94,14 +131,17 @@ echo "→ Installing PO token provider plugin..."
 pip install -q bgutil-ytdlp-pot-provider
 
 # ── 3. Deno (for PO token JS challenge solving) ──────────────────────────────
-if ! command -v deno &>/dev/null; then
+if ! ensure_deno; then
     echo "→ Installing Deno..."
     curl -fsSL https://deno.land/install.sh | sh -s v2.9.5
     export DENO_INSTALL="$HOME/.deno"
     export PATH="$DENO_INSTALL/bin:$PATH"
-else
-    echo "→ Deno already installed."
 fi
+if ! ensure_deno; then
+    echo "⚠️  Deno install failed."
+    exit 1
+fi
+echo "→ Deno: $(command -v deno) ($(deno --version | head -n1))"
 
 # ── 4. PO Token Provider Server (bgutil) ───────────────────────────────────────
 if [ ! -d "$PO_TOKEN_DIR" ]; then
